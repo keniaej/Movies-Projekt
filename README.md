@@ -15,7 +15,7 @@ An end-to-end data project covering 100 years of film history: a data pipeline t
 
 ## Quick start (about 2 minutes)
 
-The processed data and the trained model are included, so **no API keys are needed** to run the dashboard.
+The processed data and the trained model are included, so **no API keys are needed** to run the dashboard. It needs Python 3.10 or newer.
 
 ```bash
 git clone https://github.com/keniaej/Movies-Projekt.git
@@ -96,7 +96,7 @@ The intervals are deliberately honest. They come from the model's actual errors 
 You need a free [TMDb API key](https://www.themoviedb.org/settings/api) and a [Kaggle API token](https://www.kaggle.com/settings).
 
 - **Colab:** add `TMDB_API_KEY`, `KAGGLE_USERNAME` and `KAGGLE_KEY` as Colab Secrets (🔑 icon), then run notebook 1 and notebook 2. The fetch from TMDb takes about 10 minutes.
-- **Locally:** export the same three variables (see [`.env.example`](.env.example)) and run the notebooks from the `notebooks/` folder.
+- **Locally:** run `pip install -r requirements-notebooks.txt`, export the same three variables (see [`.env.example`](.env.example)), and run the notebooks from the `notebooks/` folder.
 
 ## Project structure
 
@@ -108,7 +108,9 @@ You need a free [TMDb API key](https://www.themoviedb.org/settings/api) and a [K
 ├── data/                   # processed CSVs used by the dashboard
 ├── models/                 # trained model (XGBoost JSON) + metadata
 ├── images/                 # charts exported by the notebooks
-└── requirements.txt
+├── model_reader.py         # reads the XGBoost model without needing xgboost installed
+├── requirements.txt        # dashboard
+└── requirements-notebooks.txt
 ```
 
 ## Data sources

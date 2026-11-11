@@ -41,14 +41,14 @@ full_df      = pd.read_csv(DATA_DIR / "movies_full.csv").reset_index(drop=True)
 genre_trends = pd.read_csv(DATA_DIR / "genre_trends.csv").reset_index(drop=True)
 pred_df      = pd.read_csv(DATA_DIR / "predictions_2026.csv").reset_index(drop=True)
 
-# Model: XGBoost is stored in its own version-independent JSON format;
-# scikit-learn models (if one of them wins a re-run) as a gzipped pickle.
+# Model: XGBoost is stored in its own JSON format and read by model_reader.py
+# (no xgboost install needed). A scikit-learn model (if one wins a re-run)
+# is stored as a gzipped pickle.
 META = json.loads(META_PATH.read_text())
 MODEL_PATH = MODEL_DIR / META["model_file"]
 if MODEL_PATH.suffix == ".json":
-    import xgboost as xgb
-    model = xgb.XGBRegressor()
-    model.load_model(MODEL_PATH)
+    from model_reader import XGBoostJSONModel
+    model = XGBoostJSONModel(MODEL_PATH)
 else:
     with gzip.open(MODEL_PATH, "rb") as f:
         model = pickle.load(f)

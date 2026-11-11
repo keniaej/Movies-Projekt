@@ -1,0 +1,11 @@
+# Only needed to rebuild the data / retrain the model (notebooks/)
+-r requirements.txt
+scikit-learn
+xgboost
+shap
+requests
+tqdm
+kaggle
+matplotlib
+seaborn
+jupyter
