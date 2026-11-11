@@ -4,6 +4,7 @@ Run: python app.py  →  open http://127.0.0.1:8050
 """
 
 import gzip
+import json
 import sys
 import traceback
 import pickle
@@ -25,10 +26,11 @@ print("Loading data…")
 # Paths relative to this file, so the app works from any working directory
 ROOT       = Path(__file__).resolve().parent
 DATA_DIR   = ROOT / "data"
-MODEL_PATH = ROOT / "models" / "film_revenue_model.pkl.gz"
+MODEL_DIR  = ROOT / "models"
+META_PATH  = MODEL_DIR / "model_meta.json"
 
 _required = [DATA_DIR / "movies_full.csv", DATA_DIR / "genre_trends.csv",
-             DATA_DIR / "predictions_2026.csv", MODEL_PATH]
+             DATA_DIR / "predictions_2026.csv", META_PATH]
 _missing = [p.relative_to(ROOT).as_posix() for p in _required if not p.exists()]
 if _missing:
     sys.exit("❌ Missing files: " + ", ".join(_missing) +
@@ -39,14 +41,24 @@ full_df      = pd.read_csv(DATA_DIR / "movies_full.csv").reset_index(drop=True)
 genre_trends = pd.read_csv(DATA_DIR / "genre_trends.csv").reset_index(drop=True)
 pred_df      = pd.read_csv(DATA_DIR / "predictions_2026.csv").reset_index(drop=True)
 
-with gzip.open(MODEL_PATH, "rb") as f:
-    bundle = pickle.load(f)
+# Model: XGBoost is stored in its own version-independent JSON format;
+# scikit-learn models (if one of them wins a re-run) as a gzipped pickle.
+META = json.loads(META_PATH.read_text())
+MODEL_PATH = MODEL_DIR / META["model_file"]
+if MODEL_PATH.suffix == ".json":
+    import xgboost as xgb
+    model = xgb.XGBRegressor()
+    model.load_model(MODEL_PATH)
+else:
+    with gzip.open(MODEL_PATH, "rb") as f:
+        model = pickle.load(f)
 
-model        = bundle["model"]
-le_genre     = bundle["le_genre"]
-FEATURE_COLS = bundle["feature_cols"]
-KNOWN_GENRES = bundle["known_genres"]
-MEDIAN_RT    = float(bundle["median_runtime"])
+MODEL_NAME   = META["model_name"]
+FEATURE_COLS = META["feature_cols"]
+KNOWN_GENRES = META["genres"]                 # list index = genre_encoded
+GENRE_CODE   = {g: i for i, g in enumerate(KNOWN_GENRES)}
+MEDIAN_RT    = float(META["median_runtime"])
+INTERVAL_LOG = tuple(META["interval_log"])    # 80% prediction interval (log scale)
 
 for col in ["budget_adj","revenue_adj","roi","runtime",
             "vote_average","vote_count","release_year","release_month"]:
@@ -165,7 +177,7 @@ T = {
         "sub_scatter":     "Each dot is one film. Above the dashed line = profitable. ⭐ = Oscar Best Picture winner.",
         "sub_oscar":       "Gold bars = inflation-adjusted revenue. Red line = audience rating on right axis. Hover a bar to see the film title.",
         "sub_revenue":     "Four views of the same story: how revenue, volume, ROI, and growth evolved decade by decade.",
-        "sub_predict":     "Random Forest model predictions for 2026 blockbusters. Error bars = 80% confidence interval. Use the tool below to predict any film.",
+        "sub_predict":     "{model} predictions for 2026 blockbusters. Error bars = 80% prediction interval, based on the model's errors on unseen test films. Use the tool below to predict any film.",
         "predictor_title": "🔮 Live Revenue Predictor",
         "predictor_sub":   "Enter a budget, genre, and release month — the model predicts worldwide box office revenue instantly.",
         "budget_label":    "Budget ($M)",
@@ -176,7 +188,7 @@ T = {
         "pred_revenue":    "PREDICTED REVENUE",
         "est_roi":         "ESTIMATED ROI",
         "inputs":          "INPUTS",
-        "range_80":        "80% confidence range",
+        "range_80":        "80% prediction interval",
         "summer":          "☀️ Summer release",
         "holiday":         "🎄 Holiday release",
         "standard":        "📅 Standard release",
@@ -233,7 +245,7 @@ T = {
         "sub_scatter":     "Jeder Punkt ist ein Film. Über der Linie = profitabel. ⭐ = Oscar Bester Film.",
         "sub_oscar":       "Goldene Balken = inflationsbereinigte Einnahmen. Rote Linie = Bewertung (rechte Achse). Hover für Filmtitel.",
         "sub_revenue":     "Vier Perspektiven: Einnahmen, Volumen, ROI und Wachstumsindex — Jahrzehnt für Jahrzehnt.",
-        "sub_predict":     "Random-Forest-Modell-Prognosen für 2026-Blockbuster. Fehlerbalken = 80% Konfidenzintervall.",
+        "sub_predict":     "{model}-Prognosen für 2026-Blockbuster. Fehlerbalken = 80% Prognoseintervall, berechnet aus den Fehlern des Modells auf ungesehenen Testfilmen.",
         "predictor_title": "🔮 Live-Einnahmenprognose",
         "predictor_sub":   "Budget, Genre und Erscheinungsmonat eingeben — das Modell prognostiziert sofort die weltweiten Einnahmen.",
         "budget_label":    "Budget (Mio. $)",
@@ -244,7 +256,7 @@ T = {
         "pred_revenue":    "PROGNOSTIZIERTE EINNAHMEN",
         "est_roi":         "GESCHÄTZTER ROI",
         "inputs":          "EINGABEN",
-        "range_80":        "80% Konfidenzbereich",
+        "range_80":        "80% Prognoseintervall",
         "summer":          "☀️ Sommerveröffentlichung",
         "holiday":         "🎄 Feiertagsveröffentlichung",
         "standard":        "📅 Standardveröffentlichung",
@@ -1273,7 +1285,7 @@ def render_tab(tab, decade_range, genres, theme, lang):
             })
 
             return html.Div([
-                insight_box(t["sub_predict"], th),
+                insight_box(t["sub_predict"].format(model=MODEL_NAME), th),
                 dcc.Graph(figure=fig,
                           config={"displayModeBar":True,"displaylogo":False}),
                 predictor,
@@ -1427,8 +1439,8 @@ def live_predict(n, budget_m, genre, month, runtime, theme, lang):
         month      = int(month)
         is_summer  = int(month in [5,6,7,8])
         is_holiday = int(month in [11,12])
-        genre_safe = genre if genre in set(le_genre.classes_) else "Drama"
-        genre_enc  = int(le_genre.transform([genre_safe])[0])
+        genre_safe = genre if genre in GENRE_CODE else "Drama"
+        genre_enc  = GENRE_CODE[genre_safe]
 
         X_live = pd.DataFrame([{
             "log_budget":      log_budget,
@@ -1445,15 +1457,9 @@ def live_predict(n, budget_m, genre, month, runtime, theme, lang):
         rev_pred = float(np.expm1(log_pred)) / 1e6
         roi      = (rev_pred - float(budget_m)) / float(budget_m) * 100
 
-        if hasattr(model, "estimators_"):
-            tree_preds = np.array([
-                float(np.expm1(float(tr.predict(X_live.values)[0]))) / 1e6
-                for tr in model.estimators_
-            ])
-            low  = float(np.percentile(tree_preds, 10))
-            high = float(np.percentile(tree_preds, 90))
-        else:
-            low, high = rev_pred * 0.6, rev_pred * 1.4
+        # 80% prediction interval, derived from the model's errors on the test set
+        low  = float(np.expm1(log_pred + INTERVAL_LOG[0])) / 1e6
+        high = float(np.expm1(log_pred + INTERVAL_LOG[1])) / 1e6
 
         roi_color = th["green"] if roi >= 0 else th["red"]
         season    = (t["summer"] if is_summer

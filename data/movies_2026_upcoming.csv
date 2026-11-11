@@ -1,0 +1,7 @@
+title,release_year,release_month,budget,revenue,runtime,vote_average,vote_count,popularity,original_language,primary_genre,genres_str,primary_country,primary_company,is_oscar_winner,has_financials,decade,source,adult,budget_adj,revenue_adj,roi,is_summer,is_holiday,log_budget,log_revenue
+Avatar 3,2026,12.0,350000000,0.0,165.0,,0.0,,en,Science Fiction,Science Fiction|Action|Adventure,United States of America,20th Century Studios,False,False,2020s,manual_2026,False,367500000.0,0.0,-1.0,0,1,19.722233879338255,0.0
+Jurassic World 4,2026,7.0,220000000,0.0,130.0,,0.0,,en,Science Fiction,Science Fiction|Action|Adventure,United States of America,Universal Pictures,False,False,2020s,manual_2026,False,231000000.0,0.0,-1.0,1,0,19.25792827281507,0.0
+Mission: Impossible 8,2026,5.0,300000000,0.0,145.0,,0.0,,en,Action,Action|Thriller,United States of America,Paramount Pictures,False,False,2020s,manual_2026,False,315000000.0,0.0,-1.0,1,0,19.56808319996451,0.0
+Sinners,2026,4.0,90000000,0.0,120.0,,0.0,,en,Horror,Horror|Thriller,United States of America,Warner Bros.,False,False,2020s,manual_2026,False,94500000.0,0.0,-1.0,0,0,18.36411040304598,0.0
+Superman (2026),2026,7.0,200000000,0.0,140.0,,0.0,,en,Action,Action|Science Fiction,United States of America,Warner Bros.,False,False,2020s,manual_2026,False,210000000.0,0.0,-1.0,1,0,19.162618093443648,0.0
+The Odyssey,2026,7.0,250000000,0.0,150.0,,0.0,,en,Adventure,Adventure|Drama,United States of America,Universal Pictures,False,False,2020s,manual_2026,False,262500000.0,0.0,-1.0,1,0,19.385761643805477,0.0
