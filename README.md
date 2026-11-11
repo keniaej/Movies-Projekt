@@ -2,6 +2,8 @@
 
 An end-to-end data project covering 100 years of film history: a data pipeline that combines **45,000+ films** from Kaggle with recent releases from the **TMDb API**, a **machine-learning model** that forecasts worldwide box-office revenue, and an **interactive Plotly Dash dashboard** to explore it all.
 
+![Dashboard screenshot](images/dashboard.png)
+
 
 ## Features
 
