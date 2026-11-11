@@ -1,0 +1,7 @@
+Movie,Budget ($M),Genre,Release Month,Predicted Rev ($M),Low Estimate ($M),High Estimate ($M),Predicted ROI (%)
+Avatar 3,368.0,Science Fiction,12.0,1233.0,194.0,6299.0,235.4
+Jurassic World 4,231.0,Science Fiction,7.0,269.0,42.0,1376.0,16.6
+Mission: Impossible 8,315.0,Action,5.0,701.0,110.0,3579.0,122.4
+Sinners,94.0,Horror,4.0,227.0,36.0,1159.0,140.0
+Superman (2026),210.0,Action,7.0,407.0,64.0,2080.0,93.8
+The Odyssey,262.0,Adventure,7.0,931.0,147.0,4759.0,254.8

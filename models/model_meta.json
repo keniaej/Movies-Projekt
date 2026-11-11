@@ -1,0 +1,85 @@
+{
+  "model_name": "XGBoost",
+  "model_file": "film_revenue_model.json",
+  "feature_cols": [
+    "log_budget",
+    "runtime",
+    "release_month",
+    "is_summer",
+    "is_holiday",
+    "genre_encoded",
+    "is_oscar_winner",
+    "release_year"
+  ],
+  "feature_labels": {
+    "log_budget": "Production Budget (log)",
+    "runtime": "Runtime (minutes)",
+    "release_month": "Release Month",
+    "is_summer": "Summer Release",
+    "is_holiday": "Holiday Release",
+    "genre_encoded": "Genre",
+    "is_oscar_winner": "Oscar Winner",
+    "release_year": "Release Year"
+  },
+  "genres": [
+    "Action",
+    "Adventure",
+    "Animation",
+    "Comedy",
+    "Crime",
+    "Documentary",
+    "Drama",
+    "Family",
+    "Fantasy",
+    "Foreign",
+    "History",
+    "Horror",
+    "Music",
+    "Mystery",
+    "Romance",
+    "Science Fiction",
+    "TV Movie",
+    "Thriller",
+    "Unknown",
+    "War",
+    "Western"
+  ],
+  "median_runtime": 107.0,
+  "interval_log": [
+    -1.847882059711992,
+    1.6310821090192638
+  ],
+  "trained_on": 4910,
+  "test_r2": 0.4198,
+  "cv_r2_mean": 0.4665,
+  "cv_r2_std": 0.0293,
+  "test_mae_M": 116.7,
+  "test_median_ae_M": 42.0,
+  "model_comparison": [
+    {
+      "model": "XGBoost",
+      "R\u00b2": 0.4198,
+      "MAE ($M)": 116.674,
+      "RMSE (log)": 1.578
+    },
+    {
+      "model": "Gradient Boosting",
+      "R\u00b2": 0.4188,
+      "MAE ($M)": 115.6765,
+      "RMSE (log)": 1.5794
+    },
+    {
+      "model": "Random Forest",
+      "R\u00b2": 0.4184,
+      "MAE ($M)": 117.5361,
+      "RMSE (log)": 1.5799
+    }
+  ],
+  "versions": {
+    "python": "3.13.18",
+    "scikit-learn": "1.6.1",
+    "numpy": "2.4.6",
+    "pandas": "2.2.3",
+    "xgboost": "3.4.1"
+  }
+}

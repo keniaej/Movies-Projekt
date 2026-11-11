@@ -2,7 +2,6 @@
 
 An end-to-end data project covering 100 years of film history: a data pipeline that combines **45,000+ films** from Kaggle with recent releases from the **TMDb API**, a **machine-learning model** that forecasts worldwide box-office revenue, and an **interactive Plotly Dash dashboard** to explore it all.
 
-<!-- SCREENSHOT -->
 
 ## Features
 
@@ -50,13 +49,47 @@ The notebooks are written in German; code comments and the dashboard are in Engl
 - **Log-transformed target:** revenue is heavily right-skewed (a few blockbusters dominate), so the model predicts `log(revenue)`.
 - **Inflation adjustment:** budgets and revenues are converted to approximate 2024 USD using decade-level CPI multipliers.
 - **No leakage features:** `vote_count` correlates strongly with revenue, but it is only known *after* release, so it is deliberately excluded.
-- **Uncertainty:** the 80% interval comes from the spread of the Random Forest's individual trees.
+- **Uncertainty:** the 80% prediction interval comes from the model's errors on held-out test films.
+- **Portable model:** XGBoost is saved in its native JSON format, so it loads with any recent xgboost version.
 
-<!-- RESULTS -->
+## Results
+
+Trained on 4,910 films with budget and revenue data and tested on 1,228 films the model had never seen.
+
+| Model | Test R² (log revenue) | MAE |
+|---|---|---|
+| **XGBoost** (selected) | **0.420** | $116.7M |
+| Gradient Boosting | 0.419 | $115.7M |
+| Random Forest | 0.418 | $117.5M |
+
+- **5-fold cross-validation R²: 0.47 ± 0.03.** Performance is stable across folds.
+- **Median absolute error: $42M.** The mean error ($117M) is pulled up by a few blockbusters.
+- **Budget is by far the strongest predictor,** followed by genre and release year.
+- **Three very different algorithms land at the same R².** The limit is the information in the features, not the choice of model.
+
+![Model evaluation](images/model_evaluation.png)
+
+### 2026 forecasts
+
+| Film | Budget | Forecast | 80% prediction interval |
+|---|---|---|---|
+| Avatar 3 | $368M | $1,233M | $194M – $6,299M |
+| The Odyssey | $262M | $931M | $147M – $4,759M |
+| Mission: Impossible 8 | $315M | $701M | $110M – $3,579M |
+| Superman | $210M | $407M | $64M – $2,080M |
+| Jurassic World 4 | $231M | $269M | $42M – $1,376M |
+| Sinners | $94M | $227M | $36M – $1,159M |
+
+The intervals are deliberately honest. They come from the model's actual errors on the test set: 80% of unseen test films landed within roughly **0.16× to 5×** of their forecast. A model that knows only budget, genre and timing can rank films sensibly, but it can't pin down a single film's revenue.
+
+![2026 predictions](images/predictions_2026.png)
 
 ### Limitations
 
-The model only knows budget, genre, timing and runtime. The real drivers of box-office success, such as star power, marketing spend, franchise status, competition, reviews and word of mouth, are not in the data, which caps accuracy. The 2018–2025 TMDb sample contains only the 200 most popular films per year, so it is biased toward hits compared with the complete Kaggle data.
+- **Oscar Best Picture is a weak feature.** Only about 90 films carry it, and impurity-based importance overrates rare binary features. It also isn't known before release.
+- **The "upcoming 2026" list was written before most of these films came out.** Several were later released in 2025, so a comparison with their real box office is a natural next step.
+- **Missing drivers.** The model only knows budget, genre, timing and runtime. The real drivers of box-office success, such as star power, marketing spend, franchise status, competition, reviews and word of mouth, are not in the data, which caps accuracy.
+- **Sampling bias.** The 2018–2025 TMDb sample contains only the 200 most popular films per year, so it is biased toward hits compared with the complete Kaggle data.
 
 ## Rebuilding the data (optional)
 
@@ -73,7 +106,7 @@ You need a free [TMDb API key](https://www.themoviedb.org/settings/api) and a [K
 │   ├── 01_data_pipeline.ipynb
 │   └── 02_revenue_model.ipynb
 ├── data/                   # processed CSVs used by the dashboard
-├── models/                 # trained model + library versions
+├── models/                 # trained model (XGBoost JSON) + metadata
 ├── images/                 # charts exported by the notebooks
 └── requirements.txt
 ```
